@@ -19,6 +19,7 @@ async function run() {
         await client.connect();
         const database = client.db("tourismDb");
         const service_collection = database.collection("service");
+        const cartCollection = database.collection("PakegeCollection");
         // create a document to insert
 
         app.get('/services', async (req, res) => {
@@ -36,11 +37,57 @@ async function run() {
             res.json(service);
         });
 
+        // cart information
+        app.get('/myorder', async (req, res) => {
+            const cursor = cartCollection.find({});
+            const services = await cursor.toArray();
+            res.send(services);
+
+        });
+
         app.post('/addService', async (req, res) => {
             const package = req.body;
             const result = await service_collection.insertOne(package);
             res.json(result);
-        })
+        });
+
+        //post api
+
+        app.post('/addtocart', async (req, res) => {
+            const package = req.body;
+            const result = await cartCollection.insertOne(package);
+            res.json(result);
+        });
+
+        //UPDATE API
+        app.put('/services/:id', async (req, res) => {
+            const id = req.params.id;
+            const updatedPakege = req.body;
+            const filter = { _id: ObjectId(id) };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: {
+
+                    name: updatedPakege.title,
+                    description: updatedPakege.description,
+                    price: updatedPakege.price,
+                    image_url: updatedPakege.image_url,
+
+                },
+            };
+            const result = await service_collection.updateOne(filter, updateDoc, options)
+            console.log('updating', id);
+            res.json(result);
+        });
+
+        //delete oder
+
+        app.delete('/deleteCart/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await cartCollection.deleteOne(query);
+            res.json(result);
+        });
     } finally {
         //   await client.close();
     }
