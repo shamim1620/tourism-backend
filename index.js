@@ -32,7 +32,7 @@ async function run() {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
 
-            const service = await servicesCollection.findOne(query);
+            const service = await service_collection.findOne(query);
             res.json(service);
         });
 
